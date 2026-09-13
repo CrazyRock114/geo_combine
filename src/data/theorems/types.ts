@@ -36,4 +36,6 @@ export interface UnifiedTheorem {
   extension: string;
   challenge: TargetChallenge;
   quizzes: QuizQuestionItem[];
+  points?: string[];
+  taskGuide?: string;
 }

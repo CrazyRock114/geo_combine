@@ -49,10 +49,10 @@ export function MenelausExp({ onChallengeProgress }: ExpProps) {
         <Poly pts={[A, B, C]} stroke="#38bdf8" fill="rgba(56, 189, 248, 0.06)" w={2.2} />
         <LineAB a={G1} b={G2} stroke="#fb7185" w={2} dash="6 4" />
 
-        {/* 边延长线（确保外部交点如 BF、CD、AE 严格连结完整） */}
-        {extF && <Seg a={extF.from} b={extF.to} stroke="#38bdf8" dash="4 3" w={2} opacity={0.85} />}
-        {extD && <Seg a={extD.from} b={extD.to} stroke="#38bdf8" dash="4 3" w={2} opacity={0.85} />}
-        {extE && <Seg a={extE.from} b={extE.to} stroke="#38bdf8" dash="4 3" w={2} opacity={0.85} />}
+        {/* 边延长线（确保外部交点如 BF、CD、AE 严格连结完整，实线高对比度展示） */}
+        {extF && <Seg a={extF.from} b={extF.to} stroke="#38bdf8" w={2.2} opacity={0.95} />}
+        {extD && <Seg a={extD.from} b={extD.to} stroke="#38bdf8" w={2.2} opacity={0.95} />}
+        {extE && <Seg a={extE.from} b={extE.to} stroke="#38bdf8" w={2.2} opacity={0.95} />}
 
         {/* 截线交点 */}
         {res.F && <Dot p={res.F} color="#fb7185" label="F" />}
