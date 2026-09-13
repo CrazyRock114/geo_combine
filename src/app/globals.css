@@ -1,0 +1,111 @@
+@import 'https://fonts.googleapis.cn/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap';
+@import 'katex/dist/katex.min.css';
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: calc(var(--radius));
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: 'Noto Sans SC', 'PingFang SC', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Noto Serif SC', 'Songti SC', serif;
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: #0a0f1a;
+  --foreground: #eef0f2;
+  --card: #101827;
+  --card-foreground: #eef0f2;
+  --popover: #101827;
+  --popover-foreground: #eef0f2;
+  --primary: #f4b942;
+  --primary-foreground: #1a1405;
+  --secondary: #1b2740;
+  --secondary-foreground: #eef0f2;
+  --muted: #1b2740;
+  --muted-foreground: #94a3b8;
+  --accent: #1b2740;
+  --accent-foreground: #f4b942;
+  --destructive: #e11d48;
+  --border: #22304d;
+  --input: #22304d;
+  --ring: #f4b942;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+.font-serif-sc {
+  font-family: var(--font-serif);
+}
+
+/* 星空背景 */
+.starfield {
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(244, 185, 66, 0.5) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 68% 8%, rgba(238, 240, 242, 0.4) 50%, transparent 51%),
+    radial-gradient(1px 1px at 85% 35%, rgba(94, 200, 192, 0.45) 50%, transparent 51%),
+    radial-gradient(1px 1px at 32% 60%, rgba(238, 240, 242, 0.3) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 48% 85%, rgba(167, 139, 250, 0.4) 50%, transparent 51%),
+    radial-gradient(1px 1px at 76% 68%, rgba(238, 240, 242, 0.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 8% 78%, rgba(244, 185, 66, 0.3) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 55% 40%, rgba(238, 240, 242, 0.25) 50%, transparent 51%);
+}
+
+/* 星星点亮动画 */
+@keyframes star-pop {
+  0% { transform: scale(0) rotate(-40deg); opacity: 0; }
+  60% { transform: scale(1.35) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.star-pop { animation: star-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(244, 185, 66, 0.6)); }
+  50% { filter: drop-shadow(0 0 8px rgba(244, 185, 66, 0.9)); }
+}
+.glow-gold { filter: drop-shadow(0 0 4px rgba(244, 185, 66, 0.7)); }
+
+/* 卡片 hover */
+.theorem-card { transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+.theorem-card:hover { transform: translateY(-4px); }
+
+/* 画布拖拽手柄 */
+.geo-handle { cursor: grab; }
+.geo-handle:active { cursor: grabbing; }
+
+/* 读数数字 */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #22304d; border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }

@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Next.js build and export
+.next
+out
+dist
+build
+
+# Environment files
+.env
+.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Sub-cloned reference repositories
+geo_DSv4Pro/
+geo_GLM5.3/
+geo_GLM5.3flash/
+geo_KimiK3/
+geo_Qwen3.8Max/
+geo_gemini3.8Flash/
+
+# Vercel
+.vercel
