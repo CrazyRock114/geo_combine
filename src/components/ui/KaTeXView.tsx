@@ -1,35 +1,51 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import katex from 'katex';
 
-export function TeX({ tex, display = false }: { tex: string; display?: boolean }) {
+interface TeXProps {
+  tex?: string;
+  math?: string;
+  display?: boolean;
+  block?: boolean;
+  className?: string;
+}
+
+export function TeX({ tex, math, display = false, block = false, className = '' }: TeXProps) {
+  const formula = (tex ?? math ?? '').trim();
+
   const html = useMemo(() => {
+    if (!formula) return '';
     try {
-      // 优先调用全局或打包的 katex
-      // @ts-ignore
-      const katexModule = typeof window !== 'undefined' && (window as any).katex
-        ? (window as any).katex
-        // @ts-ignore
-        : typeof require !== 'undefined' ? require('katex') : null;
+      return katex.renderToString(formula, {
+        displayMode: display || block,
+        throwOnError: false,
+        strict: false,
+      });
+    } catch {
+      return '';
+    }
+  }, [formula, display, block]);
 
-      if (katexModule && typeof katexModule.renderToString === 'function') {
-        return katexModule.renderToString(tex, { displayMode: display, throwOnError: false, strict: false });
-      }
-    } catch {}
-    return `<span class="font-mono text-amber-300/90 font-medium px-1">${tex}</span>`;
-  }, [tex, display]);
+  if (!formula) return null;
 
-  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+  if (!html) {
+    return <span className={`font-mono text-amber-300/90 font-medium px-1 ${className}`}>{formula}</span>;
+  }
+
+  return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /** 渲染含 $...$ 内联公式的文本 */
-export function MathText({ text }: { text: string }) {
-  const parts = useMemo(() => text.split(/\$([^$]+)\$/g), [text]);
+export function MathText({ text, className = '' }: { text?: string; className?: string }) {
+  if (!text) return null;
+
+  const parts = text.split(/\$([^$]+)\$/g);
   return (
-    <>
+    <span className={className}>
       {parts.map((p, i) =>
         i % 2 === 1 ? <TeX key={i} tex={p} /> : <span key={i}>{p}</span>
       )}
-    </>
+    </span>
   );
 }

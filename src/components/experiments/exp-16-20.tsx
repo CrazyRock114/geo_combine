@@ -75,6 +75,16 @@ export function MongeExp({ onChallengeProgress }: ExpProps) {
         <Circ c={c2} r={r2} stroke="#38bdf8" />
         <Circ c={c3} r={r3} stroke="#38bdf8" />
 
+        <Dot p={c1} color="#38bdf8" label="O1" />
+        <Dot p={c2} color="#38bdf8" label="O2" />
+        <Dot p={c3} color="#38bdf8" label="O3" />
+
+        {/* 圆心连线延伸至外位似中心 */}
+        {res.P12 && <Seg a={c1} b={res.P12} stroke="#64748b" dash="3 3" opacity={0.6} />}
+        {res.P23 && <Seg a={c2} b={res.P23} stroke="#64748b" dash="3 3" opacity={0.6} />}
+        {res.P31 && <Seg a={c3} b={res.P31} stroke="#64748b" dash="3 3" opacity={0.6} />}
+
+        {/* 蒙日线 */}
         {res.P12 && res.P23 && <LineAB a={res.P12} b={res.P23} stroke="#f43f5e" w={2.2} />}
         {res.P12 && <Dot p={res.P12} color="#f43f5e" label="P12" />}
         {res.P23 && <Dot p={res.P23} color="#f43f5e" label="P23" />}
@@ -111,6 +121,10 @@ export function RadicalExp({ onChallengeProgress }: ExpProps) {
         <Circ c={c1} r={r1} stroke="#38bdf8" />
         <Circ c={c2} r={r2} stroke="#38bdf8" />
         <Circ c={c3} r={r3} stroke="#38bdf8" />
+
+        <Dot p={c1} color="#38bdf8" label="O1" />
+        <Dot p={c2} color="#38bdf8" label="O2" />
+        <Dot p={c3} color="#38bdf8" label="O3" />
 
         {res?.l12 && <LineAB a={res.l12.a} b={res.l12.b} stroke="#f59e0b" dash="4 3" />}
         {res?.l23 && <LineAB a={res.l23.a} b={res.l23.b} stroke="#f59e0b" dash="4 3" />}
@@ -151,8 +165,16 @@ export function CaseyExp({ onChallengeProgress }: ExpProps) {
     <div className="space-y-4">
       <Stage>
         <Circ c={O} r={R} stroke="#64748b" dash="4 3" />
+        {/* 四切圆连心四边形与对角线 */}
+        <Poly pts={circles.map((c) => c.c)} stroke="#f59e0b" dash="3 3" fill="none" w={1.6} />
+        <Seg a={circles[0].c} b={circles[2].c} stroke="#f43f5e" dash="2 2" w={1.5} />
+        <Seg a={circles[1].c} b={circles[3].c} stroke="#f43f5e" dash="2 2" w={1.5} />
+
         {circles.map((c, i) => (
-          <Circ key={i} c={c.c} r={c.r} stroke="#38bdf8" />
+          <React.Fragment key={i}>
+            <Circ c={c.c} r={c.r} stroke="#38bdf8" />
+            <Dot p={c.c} color="#38bdf8" label={`O${i + 1}`} />
+          </React.Fragment>
         ))}
       </Stage>
 
@@ -177,6 +199,12 @@ export function FeuerbachExp({ onChallengeProgress }: ExpProps) {
 
   const res = solveFeuerbach(A, B, C);
 
+  const dNI = res ? dist(res.npc.c, res.inc.c) : 0;
+  const TF = res && dNI > 0.1 ? pt(
+    res.inc.c.x + (res.npc.c.x - res.inc.c.x) / dNI * res.inc.r,
+    res.inc.c.y + (res.npc.c.y - res.inc.c.y) / dNI * res.inc.r
+  ) : null;
+
   useEffect(() => {
     onChallengeProgress?.(res?.tangent ? 100 : 70, res?.tangent ?? false);
   }, [res?.tangent, onChallengeProgress]);
@@ -191,8 +219,13 @@ export function FeuerbachExp({ onChallengeProgress }: ExpProps) {
             <Circ c={res.npc.c} r={res.npc.r} stroke="#f59e0b" w={2} />
             {/* 内切圆 */}
             <Circ c={res.inc.c} r={res.inc.r} stroke="#34d399" w={2} />
+
+            {/* 圆心连线 NI */}
+            <Seg a={res.npc.c} b={res.inc.c} stroke="#ec4899" w={2.2} />
+
             <Dot p={res.npc.c} color="#f59e0b" label="N(九点圆心)" />
             <Dot p={res.inc.c} color="#34d399" label="I(内心)" />
+            {TF && <Dot p={TF} color="#ec4899" label="TF(费尔巴哈切点)" />}
           </>
         )}
         <Handle p={A} label="A" onMove={setA} />

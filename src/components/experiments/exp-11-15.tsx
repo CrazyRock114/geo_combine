@@ -23,6 +23,11 @@ export function SimsonExp({ onChallengeProgress }: ExpProps) {
 
   const res = solveSimson(A, B, C, angP);
 
+  // 计算边延长线段（当垂足落在边外部时，将边延长连接至垂足）
+  const extBC = res?.pBC ? (dist(B, res.pBC) > dist(B, C) + 0.5 ? { from: C, to: res.pBC } : dist(C, res.pBC) > dist(B, C) + 0.5 ? { from: B, to: res.pBC } : null) : null;
+  const extCA = res?.pCA ? (dist(C, res.pCA) > dist(C, A) + 0.5 ? { from: A, to: res.pCA } : dist(A, res.pCA) > dist(C, A) + 0.5 ? { from: C, to: res.pCA } : null) : null;
+  const extAB = res?.pAB ? (dist(A, res.pAB) > dist(A, B) + 0.5 ? { from: B, to: res.pAB } : dist(B, res.pAB) > dist(A, B) + 0.5 ? { from: A, to: res.pAB } : null) : null;
+
   useEffect(() => {
     onChallengeProgress?.(res?.collinear ? 100 : 70, res?.collinear ?? false);
   }, [res?.collinear, onChallengeProgress]);
@@ -33,18 +38,35 @@ export function SimsonExp({ onChallengeProgress }: ExpProps) {
         <Poly pts={[A, B, C]} stroke="#38bdf8" fill="rgba(56,189,248,0.06)" w={2} />
         {res && (
           <>
-            {/* 西姆松线 */}
-            <LineAB a={res.pBC} b={res.pCA} stroke="#f43f5e" w={2.2} />
+            {/* 外接圆 */}
+            <Circ c={res.O} r={res.R} stroke="#38bdf8" dash="4 3" opacity={0.35} />
+
+            {/* 边延长线 */}
+            {extBC && <Seg a={extBC.from} b={extBC.to} stroke="#38bdf8" dash="3 3" opacity={0.7} />}
+            {extCA && <Seg a={extCA.from} b={extCA.to} stroke="#38bdf8" dash="3 3" opacity={0.7} />}
+            {extAB && <Seg a={extAB.from} b={extAB.to} stroke="#38bdf8" dash="3 3" opacity={0.7} />}
 
             {/* 垂足连线 */}
             <Seg a={res.P} b={res.pBC} stroke="#94a3b8" dash="3 3" />
             <Seg a={res.P} b={res.pCA} stroke="#94a3b8" dash="3 3" />
             <Seg a={res.P} b={res.pAB} stroke="#94a3b8" dash="3 3" />
 
-            <Dot p={res.P} color="#fbbf24" label="P(外接圆上)" />
-            <Dot p={res.pBC} color="#f43f5e" label="D" />
-            <Dot p={res.pCA} color="#f43f5e" label="E" />
-            <Dot p={res.pAB} color="#f43f5e" label="F" />
+            {/* 西姆松线 */}
+            <LineAB a={res.pBC} b={res.pCA} stroke="#f43f5e" w={2.2} />
+
+            <Dot p={res.P} color="#fbbf24" label="P" />
+            <Dot p={res.pBC} color="#f43f5e" label="D(BC垂足)" />
+            <Dot p={res.pCA} color="#f43f5e" label="E(CA垂足)" />
+            <Dot p={res.pAB} color="#f43f5e" label="F(AB垂足)" />
+
+            <Handle
+              p={res.P}
+              color="#fbbf24"
+              onMove={(np) => {
+                const ang = Math.atan2(np.y - res.O.y, np.x - res.O.x);
+                setAngP(ang);
+              }}
+            />
           </>
         )}
 
@@ -84,8 +106,18 @@ export function SteinerExp({ onChallengeProgress }: ExpProps) {
         <Poly pts={[A, B, C]} stroke="#38bdf8" fill="rgba(56,189,248,0.06)" w={2} />
         {res && (
           <>
+            <Circ c={res.O} r={res.R} stroke="#38bdf8" dash="4 3" opacity={0.3} />
+            {/* 西姆松线 */}
             <LineAB a={res.pBC} b={res.pCA} stroke="#f43f5e" w={2} />
-            {res.H && <Dot p={res.H} color="#a855f7" label="H(垂心)" />}
+
+            {/* 垂心 H 与 P 连线及其中点 */}
+            {res.H && (
+              <>
+                <Seg a={res.H} b={res.P} stroke="#a855f7" dash="4 3" w={2} />
+                <Dot p={res.H} color="#a855f7" label="H(垂心)" />
+              </>
+            )}
+            {res.midHP && <Dot p={res.midHP} color="#a855f7" label="M(HP中点)" />}
             <Dot p={res.P} color="#fbbf24" label="P" />
           </>
         )}
@@ -97,7 +129,7 @@ export function SteinerExp({ onChallengeProgress }: ExpProps) {
       <Readout
         items={[
           { label: '西姆松线反向连线', value: '平分 HP 线段', tone: 'gold' },
-          { label: '垂心 H 状态', value: '共线交织', tone: 'teal' },
+          { label: '垂心 H 状态', value: 'HP 中点在西姆松线上', tone: 'teal' },
           { label: '定理成立', value: '✅ 成立', ok: true },
         ]}
         verified={true}
@@ -203,11 +235,22 @@ export function MiquelExp({ onChallengeProgress }: ExpProps) {
       <Stage>
         <Poly pts={[A, B, C]} stroke="#38bdf8" fill="rgba(56,189,248,0.06)" w={2} />
 
+        {/* 边上三点连线构成的密克三角形 */}
+        {res.D && res.E && res.F && (
+          <Poly pts={[res.D, res.E, res.F]} stroke="#94a3b8" dash="3 3" fill="rgba(148,163,184,0.06)" />
+        )}
+
         {/* 密克三圆 */}
         {res.c1 && <Circ c={res.c1.c} r={res.c1.r} stroke="#818cf8" dash="4 3" opacity={0.5} />}
         {res.c2 && <Circ c={res.c2.c} r={res.c2.r} stroke="#34d399" dash="4 3" opacity={0.5} />}
         {res.c3 && <Circ c={res.c3.c} r={res.c3.r} stroke="#f43f5e" dash="4 3" opacity={0.5} />}
 
+        {/* 三边上的分点 D, E, F */}
+        {res.D && <Dot p={res.D} color="#818cf8" label="D" />}
+        {res.E && <Dot p={res.E} color="#34d399" label="E" />}
+        {res.F && <Dot p={res.F} color="#f43f5e" label="F" />}
+
+        {/* 密克共点 */}
         {res.M && <Dot p={res.M} color="#fbbf24" label="M(密克点)" />}
 
         <Handle p={A} label="A" onMove={setA} />
@@ -217,7 +260,7 @@ export function MiquelExp({ onChallengeProgress }: ExpProps) {
 
       <Readout
         items={[
-          { label: '三边分点 D, E, F', value: '任意选定' },
+          { label: '三边分点 D, E, F', value: '位于三边上' },
           { label: '外接圆 C1, C2, C3', value: '三圆共点 M', tone: 'gold' },
           { label: '密克点验证', value: res.concurrent ? '✅ 严格成立' : '计算中', ok: res.concurrent },
         ]}

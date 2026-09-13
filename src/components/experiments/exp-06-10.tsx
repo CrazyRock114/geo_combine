@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Pt } from '../../lib/geom/types.ts';
 import { pt, dist, fmt } from '../../lib/geom/vector.ts';
+import { foot } from '../../lib/geom/lines.ts';
 import {
   solveBrianchon, solvePtolemy, solveBrahmagupta, solvePowerOfPoint, solveZhangJiao
 } from '../../lib/geom/theorems-algo.ts';
@@ -27,11 +28,22 @@ export function BrianchonExp({ onChallengeProgress }: ExpProps) {
     onChallengeProgress?.(res.concurrent ? 100 : 70, res.concurrent);
   }, [res.concurrent, onChallengeProgress]);
 
+  // 计算六切点
+  const touchPoints = res.V.length === 6 ? res.V.map((v, i) => {
+    const nextV = res.V[(i + 1) % 6];
+    return foot(O, v, nextV);
+  }) : [];
+
   return (
     <div className="space-y-4">
       <Stage>
         <Circ c={O} r={r} stroke="#38bdf8" dash="4 3" opacity={0.6} />
         {res.V.length === 6 && <Poly pts={res.V} stroke="#818cf8" fill="rgba(129,140,248,0.06)" w={2} />}
+
+        {/* 六切点 */}
+        {touchPoints.map((tp, i) => (
+          <Dot key={i} p={tp} color="#34d399" r={3.5} />
+        ))}
 
         {/* 三条主对角线 */}
         {res.V.length === 6 && (
@@ -141,9 +153,9 @@ export function BrahmaguptaExp({ onChallengeProgress }: ExpProps) {
           <>
             <Dot p={res.P} color="#fbbf24" label="P" />
             <Seg a={res.P} b={res.F} stroke="#f43f5e" w={2} />
-            <Dot p={res.F} color="#f43f5e" label="F" />
+            <Dot p={res.F} color="#f43f5e" label="F(垂足)" />
             <Seg a={res.P} b={res.midAB} stroke="#34d399" dash="3 3" w={1.8} />
-            <Dot p={res.midAB} color="#34d399" label="M(中点)" />
+            <Dot p={res.midAB} color="#34d399" label="M(平分中点)" />
           </>
         )}
 
@@ -173,6 +185,14 @@ export function PowerExp({ onChallengeProgress }: ExpProps) {
   const r = 90;
   const res = solvePowerOfPoint(P, O, r, 0.65, 1.15);
 
+  const dOP = dist(P, O);
+  let T: Pt | null = null;
+  if (dOP > r + 1) {
+    const theta = Math.atan2(P.y - O.y, P.x - O.x);
+    const alpha = Math.acos(Math.min(1, r / dOP));
+    T = pt(O.x + r * Math.cos(theta + alpha), O.y + r * Math.sin(theta + alpha));
+  }
+
   useEffect(() => {
     onChallengeProgress?.(res.ok ? 100 : 70, res.ok);
   }, [res.ok, onChallengeProgress]);
@@ -198,6 +218,14 @@ export function PowerExp({ onChallengeProgress }: ExpProps) {
             <LineAB a={P} b={res.sec2[0]} stroke="#34d399" dash="4 3" />
             <Dot p={res.sec2[0]} color="#34d399" label="C" />
             <Dot p={res.sec2[1]} color="#34d399" label="D" />
+          </>
+        )}
+
+        {/* 切线 PT */}
+        {T && (
+          <>
+            <Seg a={P} b={T} stroke="#ec4899" w={2} />
+            <Dot p={T} color="#ec4899" label="T(切点)" />
           </>
         )}
 

@@ -218,7 +218,7 @@ export function solveSimson(A: Pt, B: Pt, C: Pt, angP: number) {
   const pAB = foot(P, A, B);
 
   const collinear = isCollinear(pBC, pCA, pAB, 0.05);
-  return { P, pBC, pCA, pAB, collinear };
+  return { P, pBC, pCA, pAB, collinear, O: cc.c, R: cc.r };
 }
 
 // ==========================================
@@ -228,8 +228,10 @@ export function solveSteiner(A: Pt, B: Pt, C: Pt, angP: number) {
   const sim = solveSimson(A, B, C, angP);
   if (!sim) return null;
   const H = orthocenter(A, B, C);
+  const midHP = H ? midpoint(H, sim.P) : null;
   const distToH = H ? distPointToLine(H, sim.pBC, sim.pCA) : 999;
-  return { ...sim, H, passesThroughOrthocenter: distToH < 0.1 };
+  const midOnLine = midHP ? distPointToLine(midHP, sim.pBC, sim.pCA) < 0.1 : false;
+  return { ...sim, H, midHP, passesThroughOrthocenter: distToH < 0.1, midOnLine };
 }
 
 // ==========================================
@@ -462,8 +464,13 @@ export function solveSawayama(A: Pt, B: Pt, C: Pt, D: Pt) {
 // ==========================================
 export function solveThebault(A: Pt, B: Pt, C: Pt, D: Pt) {
   const saw1 = solveSawayama(A, B, C, D);
+  const saw2 = solveSawayama(A, C, B, D);
   const inc = incircle(A, B, C);
-  return { saw1, inc, ok: true };
+  const K1 = saw1?.sawCircle?.K;
+  const K2 = saw2?.sawCircle?.K;
+  const I = inc?.c;
+  const collinear = I && K1 && K2 ? isCollinear(K1, I, K2, 0.25) : true;
+  return { saw1, saw2, inc, K1, K2, I, collinear, ok: true };
 }
 
 // ==========================================
@@ -487,11 +494,20 @@ export function solveDrozFarny(A: Pt, B: Pt, C: Pt, angL: number) {
   const dir1 = pt(Math.cos(angL), Math.sin(angL));
   const dir2 = perp(dir1);
 
-  const pBC = lineIntersect(H, add(H, dir1), B, C);
-  const pCA = lineIntersect(H, add(H, dir1), C, A);
-  const pAB = lineIntersect(H, add(H, dir1), A, B);
+  const X1 = lineIntersect(H, add(H, dir1), B, C);
+  const Y1 = lineIntersect(H, add(H, dir1), C, A);
+  const Z1 = lineIntersect(H, add(H, dir1), A, B);
 
-  return { H, ok: true };
+  const X2 = lineIntersect(H, add(H, dir2), B, C);
+  const Y2 = lineIntersect(H, add(H, dir2), C, A);
+  const Z2 = lineIntersect(H, add(H, dir2), A, B);
+
+  const Ma = X1 && X2 ? midpoint(X1, X2) : null;
+  const Mb = Y1 && Y2 ? midpoint(Y1, Y2) : null;
+  const Mc = Z1 && Z2 ? midpoint(Z1, Z2) : null;
+
+  const collinear = Ma && Mb && Mc ? isCollinear(Ma, Mb, Mc, 0.1) : true;
+  return { H, dir1, dir2, X1, Y1, Z1, X2, Y2, Z2, Ma, Mb, Mc, collinear, ok: true };
 }
 
 // ==========================================
@@ -509,21 +525,48 @@ export function solveErdosMordell(A: Pt, B: Pt, C: Pt, P: Pt) {
   const R2 = dist(P, B);
   const R3 = dist(P, C);
 
-  const r1 = distPointToLine(P, B, C);
-  const r2 = distPointToLine(P, C, A);
-  const r3 = distPointToLine(P, A, B);
+  const footA = foot(P, B, C);
+  const footB = foot(P, C, A);
+  const footC = foot(P, A, B);
+
+  const r1 = dist(P, footA);
+  const r2 = dist(P, footB);
+  const r3 = dist(P, footC);
 
   const sumR = R1 + R2 + R3;
   const sumr = r1 + r2 + r3;
   const ratio = sumR / (sumr || EPS);
 
-  return { R1, R2, R3, r1, r2, r3, sumR, sumr, ratio, ok: ratio >= 1.999 };
+  return { R1, R2, R3, r1, r2, r3, sumR, sumr, ratio, footA, footB, footC, ok: ratio >= 1.999 };
 }
 
 // ==========================================
 // 30. 巴罗不等式 (Barrow)
 // ==========================================
 export function solveBarrow(A: Pt, B: Pt, C: Pt, P: Pt) {
-  const em = solveErdosMordell(A, B, C, P);
-  return { ...em, ok: em.ratio >= 1.999 };
+  const R1 = dist(P, A);
+  const R2 = dist(P, B);
+  const R3 = dist(P, C);
+
+  const uA = norm(sub(A, P));
+  const uB = norm(sub(B, P));
+  const uC = norm(sub(C, P));
+
+  const dirBC = norm(add(uB, uC));
+  const dirCA = norm(add(uC, uA));
+  const dirAB = norm(add(uA, uB));
+
+  const Wa = lineIntersect(P, add(P, dirBC), B, C) || lerp(B, C, 0.5);
+  const Wb = lineIntersect(P, add(P, dirCA), C, A) || lerp(C, A, 0.5);
+  const Wc = lineIntersect(P, add(P, dirAB), A, B) || lerp(A, B, 0.5);
+
+  const w1 = dist(P, Wa);
+  const w2 = dist(P, Wb);
+  const w3 = dist(P, Wc);
+
+  const sumR = R1 + R2 + R3;
+  const sumW = w1 + w2 + w3;
+  const ratio = sumR / (sumW || EPS);
+
+  return { R1, R2, R3, w1, w2, w3, sumR, sumW, ratio, Wa, Wb, Wc, ok: ratio >= 1.999 };
 }
