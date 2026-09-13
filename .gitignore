@@ -33,3 +33,4 @@ geo_gemini3.8Flash/
 
 # Vercel
 .vercel
+.env*
